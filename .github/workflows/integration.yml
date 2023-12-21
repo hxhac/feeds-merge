@@ -7,10 +7,10 @@ jobs:
       - uses: actions/checkout@master
       - name: Self test
         id: selftest
-
         # Put your action repo here
-        uses: jacobtomlinson/go-container-action@master
-
+        uses: 91go/rss-merge@main
+        env:
+          feeds-yaml: testdata/feeds.yml
       - name: Check outputs
         run: |
           test "${{ steps.selftest.outputs.myOutput }}" == "Hello world"

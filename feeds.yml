@@ -1,0 +1,17 @@
+- name: news
+  feeds:
+    - url: 'https://discuss-cn.bestxtools.com/atom/discussions'
+      name: BestXTools 的新帖
+      remark: null
+    - url: 'https://meta.appinn.net/tag/macos.rss'
+      name: 小众软件官方论坛 - 使用macos标记的话题
+      remark: null
+    - url: 'https://www.reddit.com/r/Alfred.rss'
+      name: Alfred App
+      remark: null
+- name: gh
+  feeds:
+    - url: 'https://github.com/hzhacking.atom'
+      name: GitHub Public Timeline Feed
+    - url: https://www.wired.com/feed/rss'
+      name: wired
