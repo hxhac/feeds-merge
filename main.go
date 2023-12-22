@@ -12,6 +12,7 @@ import (
 type env struct {
 	path       string
 	author     string
+	feedLink   string
 	categories []Categories `yaml:"categories"`
 	timeout    int
 	feedLimit  int
@@ -49,6 +50,7 @@ func newEnv() *env {
 			timeout:    ti,
 			feedLimit:  feedLimit,
 			author:     core.GetInputOrDefault("AUTHOR_NAME", ""),
+			feedLink:   core.GetInputOrDefault("FEED_LINK", ""),
 			categories: cates,
 		}
 	})
@@ -90,7 +92,7 @@ func main() {
 				core.Errorf("Write file error: %v", err)
 				return
 			}
-			core.SetOutput("feeds", "feeds")
+			core.SetOutput("FEEDS_FOLDER", "feeds")
 		}(cate)
 	}
 	wg.Wait()

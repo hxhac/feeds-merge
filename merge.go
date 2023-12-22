@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"sort"
 	"time"
 
 	"github.com/actions-go/toolkit/core"
@@ -71,22 +70,21 @@ func (e env) getAuthor(feed *gofeed.Feed) string {
 	if feed.Items[0].Author != nil {
 		return feed.Items[0].Author.Name
 	}
-	core.Errorf("Could not determine author for %v", feed.Link)
+	core.Infof("Using Default Author for [%s]", feed.Link)
 	return e.author
 }
 
 func (e env) mergeAllFeeds(feedTitle string, allFeeds []*gofeed.Feed) *feeds.Feed {
 	feed := &feeds.Feed{
-		Title: feedTitle,
-		// Link:        &feeds.Link{Href: viper.GetString("link")},
-		// Description: viper.GetString("description"),
-		// Author: &feeds.Author{
-		// 	Name:  viper.GetString("author_name"),
-		// 	Email: viper.GetString("author_email"),
-		// },
+		Title:       feedTitle,
+		Link:        &feeds.Link{Href: e.feedLink},
+		Description: "Merged feeds from " + feedTitle,
+		Author: &feeds.Author{
+			Name: e.author,
+		},
 		Created: time.Now(),
 	}
-	sort.Sort(sort.Reverse(byPublished(allFeeds)))
+	// sort.Sort(sort.Reverse(byPublished(allFeeds)))
 	limitPerFeed := e.feedLimit
 	seen := make(map[string]bool)
 	for _, sourceFeed := range allFeeds {
@@ -97,20 +95,38 @@ func (e env) mergeAllFeeds(feedTitle string, allFeeds []*gofeed.Feed) *feeds.Fee
 			if seen[item.Link] {
 				continue
 			}
-			created := item.PublishedParsed
-			if created == nil {
-				created = item.UpdatedParsed
+			// created := item.PublishedParsed
+			// if created == nil {
+			// 	created = item.UpdatedParsed
+			// }
+
+			created := GetToday()
+			if item.UpdatedParsed != nil {
+				created = *item.UpdatedParsed
 			}
+			if item.PublishedParsed != nil {
+				created = *item.PublishedParsed
+			}
+			if item.UpdatedParsed == nil && item.PublishedParsed == nil {
+				created = time.Now()
+			}
+
 			feed.Items = append(feed.Items, &feeds.Item{
 				Title:       item.Title,
 				Link:        &feeds.Link{Href: item.Link},
 				Description: item.Description,
 				Author:      &feeds.Author{Name: e.getAuthor(sourceFeed)},
-				Created:     *created,
+				Created:     created,
 				Content:     item.Content,
 			})
 			seen[item.Link] = true
 		}
 	}
 	return feed
+}
+
+func GetToday() time.Time {
+	timeStr := time.Now().Format("2006-01-02")
+	t, _ := time.ParseInLocation("2006-01-02 15:04:05", timeStr+" 00:00:00", time.Local)
+	return t
 }
