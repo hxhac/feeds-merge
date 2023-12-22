@@ -1,11 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"sync"
 
-	"github.com/actions-go/toolkit/core"
 	"gopkg.in/yaml.v3"
 )
 
@@ -34,25 +34,25 @@ func newEnv() *env {
 	once.Do(func() {
 		ti := EnvStrToInt("CLIENT_TIMEOUT")
 		feedLimit := EnvStrToInt("FEED_LIMIT")
-		path := core.GetInputOrDefault("FEEDS_PATH", "feeds.yml")
+		path := os.Getenv("FEEDS_PATH")
 		fx, err := os.ReadFile(path)
 		if err != nil {
-			core.Errorf("Read Config file [%s] error: %v", path, err)
+			fmt.Printf("Read Config file [%s] error: %v", path, err)
 			return
 		}
 		var cates []Categories
 		err = yaml.Unmarshal(fx, &cates)
 		if err != nil {
-			core.Errorf("Unmarshal: %v", err)
+			fmt.Printf("Unmarshal: %v", err)
 			return
 		}
 		e = &env{
 			path:        path,
 			timeout:     ti,
 			feedLimit:   feedLimit,
-			author:      core.GetInputOrDefault("AUTHOR_NAME", ""),
-			feedLink:    core.GetInputOrDefault("FEED_LINK", ""),
-			feedsFolder: core.GetInputOrDefault("FEEDS_FOLDER", "feeds"),
+			author:      os.Getenv("AUTHOR_NAME"),
+			feedLink:    os.Getenv("FEED_LINK"),
+			feedsFolder: os.Getenv("FEEDS_FOLDER"),
 			categories:  cates,
 		}
 	})
@@ -63,15 +63,15 @@ func main() {
 	newEnv()
 	if _, err := os.Stat(e.feedsFolder); err != nil {
 		if os.IsNotExist(err) {
-			// core.Errorf("feeds directory is not exist")
+			// fmt.Printf("feeds directory is not exist")
 			err = os.Mkdir(e.feedsFolder, os.ModePerm)
 			if err != nil {
-				core.Errorf("Mkdir feeds error: %v", err)
+				fmt.Printf("Mkdir feeds error: %v", err)
 				return
 			}
 			return
 		}
-		// core.Errorf("Stat feeds directory error: %v", err)
+		// fmt.Printf("Stat feeds directory error: %v", err)
 		return
 	}
 
@@ -86,15 +86,16 @@ func main() {
 			combinedFeed := e.mergeAllFeeds(feedsTitle, allFeeds)
 			atom, err := combinedFeed.ToAtom()
 			if err != nil {
-				core.Errorf("Rendere RSS error: %v", err)
+				fmt.Printf("Rendere RSS error: %v", err)
 				return
 			}
 			err = os.WriteFile("feeds/"+feedsTitle+".atom", []byte(atom), os.ModePerm)
 			if err != nil {
-				core.Errorf("Write file error: %v", err)
+				fmt.Printf("Write file error: %v", err)
 				return
 			}
-			core.SetOutput("FEEDS_FOLDER", "feeds")
+			// core.SetOutput("FEEDS_FOLDER", "feeds")
+			fmt.Printf(`::set-output name=FEEDS_FOLDER::%s`, e.feedsFolder)
 		}(cate)
 	}
 	wg.Wait()
@@ -102,10 +103,10 @@ func main() {
 }
 
 func EnvStrToInt(envKey string) int {
-	val := core.GetInputOrDefault(envKey, "30")
+	val := os.Getenv(envKey)
 	ti, err := strconv.Atoi(val)
 	if err != nil {
-		core.Errorf("set env [%s] error: %v", envKey, err)
+		fmt.Printf("set env [%s] error: %v", envKey, err)
 	}
 	return ti
 }
