@@ -1,9 +1,0 @@
-- name: news
-  feeds:
-    - https://discuss-cn.bestxtools.com/atom/discussions
-    - https://meta.appinn.net/tag/macos.rss
-    - https://www.reddit.com/r/Alfred.rss
-- name: gh
-  feeds:
-    - https://github.com/hzhacking.atom
-    - https://www.wired.com/feed/rss

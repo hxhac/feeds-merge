@@ -19,7 +19,7 @@ func (e env) fetchUrl(url string, ch chan<- *gofeed.Feed) {
 	if err == nil {
 		ch <- feed
 	} else {
-		fmt.Printf("Error on URL [%s]: (%v)", url, err)
+		fmt.Printf("Error on URL [%s]: (%v)\n", url, err)
 		ch <- nil
 	}
 }

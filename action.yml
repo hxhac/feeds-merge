@@ -2,28 +2,28 @@ name: "feeds-merge"
 author: "hxhacking"
 description: "Merge RSS feeds"
 inputs:
-  FEEDS_PATH:
+  feeds_path:
     description: "feeds.yml path"
     required: true
-    default: "feeds.yml"
-  CLIENT_TIMEOUT:
+    default: ".github/workspace/feeds.yml"
+  client_timeout:
     description: ""
     default: "30"
-  AUTHOR_NAME:
+  author_name:
     description: ""
     default: ${{ github.repository }}
-  FEED_LIMIT:
+  feed_limit:
     description: "entries limit per feed"
     default: "300"
-  FEED_LINK:
+  feed_link:
     description: "feed link"
     default: "https://github.com/${{ github.repository }}"
-  FEEDS_FOLDER:
-    description: "feeds folder"
-    default: "feeds"
-outputs:
-  FEEDS_FOLDER:
-    description: "GENERATED FEEDS FOLDER"
+#  FEEDS_FOLDER:
+#    description: "feeds folder"
+#    default: "feeds"
+#outputs:
+#  FEEDS_FOLDER:
+#    description: "GENERATED FEEDS FOLDER"
 runs:
   using: "docker"
   image: "Dockerfile"

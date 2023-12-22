@@ -10,13 +10,12 @@ import (
 )
 
 type env struct {
-	path        string
-	author      string
-	feedLink    string
-	feedsFolder string
-	categories  []Categories `yaml:"categories"`
-	timeout     int
-	feedLimit   int
+	path       string
+	author     string
+	feedLink   string
+	categories []Categories `yaml:"categories"`
+	timeout    int
+	feedLimit  int
 }
 
 type Categories struct {
@@ -34,7 +33,7 @@ func newEnv() *env {
 	once.Do(func() {
 		ti := EnvStrToInt("INPUT_CLIENT_TIMEOUT", 30)
 		feedLimit := EnvStrToInt("INPUT_FEED_LIMIT", 300)
-		path := ReadEnv("INPUT_FEEDS_PATH", "feeds.yml")
+		path := ReadEnv("INPUT_FEEDS_PATH", ".github/workspace/feeds.yml")
 		fx, err := os.ReadFile(path)
 		if err != nil {
 			fmt.Printf("Read Config file [%s] error: %v", path, err)
@@ -47,13 +46,12 @@ func newEnv() *env {
 			return
 		}
 		e = &env{
-			path:        path,
-			timeout:     ti,
-			feedLimit:   feedLimit,
-			author:      ReadEnv("INPUT_AUTHOR_NAME", "github-actions"),
-			feedLink:    ReadEnv("INPUT_FEED_LINK", ""),
-			feedsFolder: ReadEnv("INPUT_FEEDS_FOLDER", "feeds"),
-			categories:  cates,
+			path:       path,
+			timeout:    ti,
+			feedLimit:  feedLimit,
+			author:     ReadEnv("INPUT_AUTHOR_NAME", "github-actions"),
+			feedLink:   ReadEnv("INPUT_FEED_LINK", ""),
+			categories: cates,
 		}
 	})
 	return e
@@ -61,19 +59,6 @@ func newEnv() *env {
 
 func main() {
 	newEnv()
-	if _, err := os.Stat(e.feedsFolder); err != nil {
-		if os.IsNotExist(err) {
-			// fmt.Printf("feeds directory is not exist")
-			err = os.Mkdir(e.feedsFolder, os.ModePerm)
-			if err != nil {
-				fmt.Printf("Mkdir feeds error: %v", err)
-				return
-			}
-			return
-		}
-		// fmt.Printf("Stat feeds directory error: %v", err)
-		return
-	}
 
 	for _, cate := range e.categories {
 		wg.Add(1)
@@ -89,13 +74,11 @@ func main() {
 				fmt.Printf("Rendere RSS error: %v", err)
 				return
 			}
-			err = os.WriteFile("feeds/"+feedsTitle+".atom", []byte(atom), os.ModePerm)
+			err = os.WriteFile(feedsTitle+".atom", []byte(atom), os.ModePerm)
 			if err != nil {
 				fmt.Printf("Write file error: %v", err)
 				return
 			}
-			// core.SetOutput("FEEDS_FOLDER", "feeds")
-			fmt.Printf(`::set-output name=FEEDS_FOLDER::%s`, e.feedsFolder)
 		}(cate)
 	}
 	wg.Wait()
