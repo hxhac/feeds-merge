@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"sync"
@@ -13,38 +12,30 @@ import (
 type env struct {
 	path       string
 	author     string
-	Categories []Categories `yaml:"categories"`
+	categories []Categories `yaml:"categories"`
 	timeout    int
-}
-
-type Feeds struct {
-	URL    string `yaml:"url"`
-	Name   string `yaml:"name"`
-	Remark string `yaml:"remark"`
+	feedLimit  int
 }
 
 type Categories struct {
-	Name  string  `yaml:"name"`
-	Feeds []Feeds `yaml:"feeds"`
+	Name  string   `yaml:"name"`
+	Feeds []string `yaml:"feeds"`
 }
 
 var (
 	once sync.Once
+	wg   sync.WaitGroup
 	e    *env
 )
 
 func newEnv() *env {
 	once.Do(func() {
-		timeout := core.GetInputOrDefault("CLIENT_TIMEOUT_SECONDS", "30")
-		ti, err := strconv.Atoi(timeout)
-		if err != nil {
-			core.Errorf("set env CLIENT_TIMEOUT_SECONDS error: %v", err)
-			return
-		}
-		path := core.GetInputOrDefault("PATH", "feeds.yml")
+		ti := EnvStrToInt("CLIENT_TIMEOUT")
+		feedLimit := EnvStrToInt("FEED_LIMIT")
+		path := core.GetInputOrDefault("FEEDS_PATH", "feeds.yml")
 		fx, err := os.ReadFile(path)
 		if err != nil {
-			core.Errorf("Read Config file error: %v", err)
+			core.Errorf("Read Config file [%s] error: %v", path, err)
 			return
 		}
 		var cates []Categories
@@ -56,46 +47,61 @@ func newEnv() *env {
 		e = &env{
 			path:       path,
 			timeout:    ti,
-			author:     core.GetInputOrDefault("AUTHOR_NAME", "github-actions"),
-			Categories: cates,
+			feedLimit:  feedLimit,
+			author:     core.GetInputOrDefault("AUTHOR_NAME", ""),
+			categories: cates,
 		}
 	})
 	return e
 }
 
 func main() {
-	// path := core.GetInputOrDefault("path", "feeds.yml")
-	//
-	// fmt.Printf(`::set-output name=myOutput::%s`, path)
+	newEnv()
+	if _, err := os.Stat("feeds"); err != nil {
+		if os.IsNotExist(err) {
+			// core.Errorf("feeds directory is not exist")
+			err := os.Mkdir("feeds", os.ModePerm)
+			if err != nil {
+				core.Errorf("Mkdir feeds error: %v", err)
+				return
+			}
+			return
+		}
+		// core.Errorf("Stat feeds directory error: %v", err)
+		return
+	}
 
-	// LoadConfig()
-	// bucket := viper.GetString("s3_bucket")
-	// filename := viper.GetString("s3_filename")
+	for _, cate := range e.categories {
+		wg.Add(1)
+		go func(cate Categories) {
+			defer wg.Done()
+			feedsTitle := cate.Name
+			urls := cate.Feeds
 
-	ev := newEnv()
-	fmt.Print(ev)
+			allFeeds := e.fetchUrls(urls)
+			combinedFeed := e.mergeAllFeeds(feedsTitle, allFeeds)
+			atom, err := combinedFeed.ToAtom()
+			if err != nil {
+				core.Errorf("Rendere RSS error: %v", err)
+				return
+			}
+			err = os.WriteFile("feeds/"+feedsTitle+".atom", []byte(atom), os.ModePerm)
+			if err != nil {
+				core.Errorf("Write file error: %v", err)
+				return
+			}
+			core.SetOutput("feeds", "feeds")
+		}(cate)
+	}
+	wg.Wait()
+	os.Exit(0)
+}
 
-	// combinedFeed := GetAtomFeed()
-	// atom, _ := combinedFeed.ToAtom()
-	// core.Errorf("Rendered RSS with %v items", len(combinedFeed.Items))
-
-	// if no S3 bucket is defined, simply print the feed on standard output
-	// if len(bucket) == 0 {
-	// 	fmt.Print(atom)
-	// 	return
-	// }
-	// Upload the feed to S3
-	// sess, err := session.NewSession(&aws.Config{})
-	// uploader := s3manager.NewUploader(sess)
-	// _, err = uploader.Upload(&s3manager.UploadInput{
-	// 	Bucket:      aws.String(bucket),
-	// 	Key:         aws.String(filename),
-	// 	Body:        strings.NewReader(atom),
-	// 	ContentType: aws.String("text/xml"),
-	// 	ACL:         aws.String("public-read"),
-	// })
-	// if err != nil {
-	// 	log.Fatalf("Unable to upload %q to %q, %v", filename, bucket, err)
-	// }
-	// log.Printf("Successfully uploaded %q to %q\n", filename, bucket)
+func EnvStrToInt(envKey string) int {
+	val := core.GetInputOrDefault(envKey, "30")
+	ti, err := strconv.Atoi(val)
+	if err != nil {
+		core.Errorf("set env [%s] error: %v", envKey, err)
+	}
+	return ti
 }

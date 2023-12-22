@@ -1,16 +1,15 @@
 name: Integration Test
 on: [push]
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
       - name: Self test
         id: selftest
-        # Put your action repo here
-        uses: 91go/rss-merge@main
+        uses: 91go/feeds-merge@main
         env:
           feeds-yaml: testdata/feeds.yml
       - name: Check outputs
         run: |
-          test "${{ steps.selftest.outputs.myOutput }}" == "Hello world"
+          test "${{ steps.selftest.outputs.FEEDS_FOLDER }}" == "feeds"
