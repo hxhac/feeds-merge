@@ -10,12 +10,13 @@ import (
 )
 
 type env struct {
-	path       string
-	author     string
-	feedLink   string
-	categories []Categories `yaml:"categories"`
-	timeout    int
-	feedLimit  int
+	path        string
+	author      string
+	feedLink    string
+	feedsFolder string
+	categories  []Categories `yaml:"categories"`
+	timeout     int
+	feedLimit   int
 }
 
 type Categories struct {
@@ -46,12 +47,13 @@ func newEnv() *env {
 			return
 		}
 		e = &env{
-			path:       path,
-			timeout:    ti,
-			feedLimit:  feedLimit,
-			author:     core.GetInputOrDefault("AUTHOR_NAME", ""),
-			feedLink:   core.GetInputOrDefault("FEED_LINK", ""),
-			categories: cates,
+			path:        path,
+			timeout:     ti,
+			feedLimit:   feedLimit,
+			author:      core.GetInputOrDefault("AUTHOR_NAME", ""),
+			feedLink:    core.GetInputOrDefault("FEED_LINK", ""),
+			feedsFolder: core.GetInputOrDefault("FEEDS_FOLDER", "feeds"),
+			categories:  cates,
 		}
 	})
 	return e
@@ -59,10 +61,10 @@ func newEnv() *env {
 
 func main() {
 	newEnv()
-	if _, err := os.Stat("feeds"); err != nil {
+	if _, err := os.Stat(e.feedsFolder); err != nil {
 		if os.IsNotExist(err) {
 			// core.Errorf("feeds directory is not exist")
-			err := os.Mkdir("feeds", os.ModePerm)
+			err = os.Mkdir(e.feedsFolder, os.ModePerm)
 			if err != nil {
 				core.Errorf("Mkdir feeds error: %v", err)
 				return

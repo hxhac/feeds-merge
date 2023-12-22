@@ -41,27 +41,27 @@ func (e env) fetchUrls(urls []string) []*gofeed.Feed {
 }
 
 // TODO: there must be a shorter syntax for this
-type byPublished []*gofeed.Feed
-
-func (s byPublished) Len() int {
-	return len(s)
-}
-
-func (s byPublished) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
-func (s byPublished) Less(i, j int) bool {
-	date1 := s[i].Items[0].PublishedParsed
-	if date1 == nil {
-		date1 = s[i].Items[0].UpdatedParsed
-	}
-	date2 := s[j].Items[0].PublishedParsed
-	if date2 == nil {
-		date2 = s[j].Items[0].UpdatedParsed
-	}
-	return date1.Before(*date2)
-}
+// type byPublished []*gofeed.Feed
+//
+// func (s byPublished) Len() int {
+// 	return len(s)
+// }
+//
+// func (s byPublished) Swap(i, j int) {
+// 	s[i], s[j] = s[j], s[i]
+// }
+//
+// func (s byPublished) Less(i, j int) bool {
+// 	date1 := s[i].Items[0].PublishedParsed
+// 	if date1 == nil {
+// 		date1 = s[i].Items[0].UpdatedParsed
+// 	}
+// 	date2 := s[j].Items[0].PublishedParsed
+// 	if date2 == nil {
+// 		date2 = s[j].Items[0].UpdatedParsed
+// 	}
+// 	return date1.Before(*date2)
+// }
 
 func (e env) getAuthor(feed *gofeed.Feed) string {
 	if feed.Author != nil {

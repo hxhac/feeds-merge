@@ -18,6 +18,9 @@ inputs:
   FEED_LINK:
     description: "feed link"
     default: "https://github.com/${{ github.repository }}"
+  FEEDS_FOLDER:
+    description: "feeds folder"
+    default: "feeds"
 outputs:
   FEEDS_FOLDER:
     description: "GENERATED FEEDS FOLDER"
