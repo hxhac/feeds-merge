@@ -32,9 +32,9 @@ var (
 
 func newEnv() *env {
 	once.Do(func() {
-		ti := EnvStrToInt("CLIENT_TIMEOUT", 30)
-		feedLimit := EnvStrToInt("FEED_LIMIT", 300)
-		path := ReadEnv("FEEDS_PATH", "feeds.yml")
+		ti := EnvStrToInt("INPUT_CLIENT_TIMEOUT", 30)
+		feedLimit := EnvStrToInt("INPUT_FEED_LIMIT", 300)
+		path := ReadEnv("INPUT_FEEDS_PATH", "feeds.yml")
 		fx, err := os.ReadFile(path)
 		if err != nil {
 			fmt.Printf("Read Config file [%s] error: %v", path, err)
@@ -50,9 +50,9 @@ func newEnv() *env {
 			path:        path,
 			timeout:     ti,
 			feedLimit:   feedLimit,
-			author:      ReadEnv("AUTHOR_NAME", "github-actions"),
-			feedLink:    ReadEnv("FEED_LINK", ""),
-			feedsFolder: ReadEnv("FEEDS_FOLDER", "feeds"),
+			author:      ReadEnv("INPUT_AUTHOR_NAME", "github-actions"),
+			feedLink:    ReadEnv("INPUT_FEED_LINK", ""),
+			feedsFolder: ReadEnv("INPUT_FEEDS_FOLDER", "feeds"),
 			categories:  cates,
 		}
 	})
