@@ -11,7 +11,7 @@ inputs:
     default: "30"
   AUTHOR_NAME:
     description: ""
-    default: ${{ github.repository.split('/')[0] }}
+    default: ${{ github.repository }}
   FEED_LIMIT:
     description: "entries limit per feed"
     default: "300"
