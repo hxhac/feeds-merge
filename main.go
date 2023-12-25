@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"sync"
+
+	"github.com/actions-go/toolkit/core"
 
 	"gopkg.in/yaml.v3"
 )
@@ -36,13 +37,13 @@ func newEnv() *env {
 		path := ReadEnv("INPUT_FEEDS_PATH", ".github/workspace/feeds.yml")
 		fx, err := os.ReadFile(path)
 		if err != nil {
-			fmt.Printf("Read Config file [%s] error: %v", path, err)
+			core.Infof("Read Config file [%s] error: %v", path, err)
 			return
 		}
 		var cates []Categories
 		err = yaml.Unmarshal(fx, &cates)
 		if err != nil {
-			fmt.Printf("Unmarshal: %v", err)
+			core.Infof("Unmarshal: %v", err)
 			return
 		}
 		e = &env{
@@ -67,16 +68,18 @@ func main() {
 			feedsTitle := cate.Name
 			urls := cate.Feeds
 
+			// check feed is valid
+
 			allFeeds := e.fetchUrls(urls)
 			combinedFeed := e.mergeAllFeeds(feedsTitle, allFeeds)
 			atom, err := combinedFeed.ToAtom()
 			if err != nil {
-				fmt.Printf("Rendere RSS error: %v", err)
+				core.Infof("Rendere RSS error: %v", err)
 				return
 			}
 			err = os.WriteFile(feedsTitle+".atom", []byte(atom), os.ModePerm)
 			if err != nil {
-				fmt.Printf("Write file error: %v", err)
+				core.Infof("Write file error: %v", err)
 				return
 			}
 		}(cate)
@@ -96,7 +99,7 @@ func EnvStrToInt(envKey string, def int) int {
 	val := os.Getenv(envKey)
 	ti, err := strconv.Atoi(val)
 	if err != nil {
-		// fmt.Printf("set env [%s] error: %v", envKey, err)
+		// core.Infof("set env [%s] error: %v", envKey, err)
 		return def
 	}
 	return ti

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/actions-go/toolkit/core"
 
 	"github.com/gorilla/feeds"
 	"github.com/mmcdole/gofeed"
@@ -19,7 +20,7 @@ func (e env) fetchUrl(url string, ch chan<- *gofeed.Feed) {
 	if err == nil {
 		ch <- feed
 	} else {
-		fmt.Printf("Error on URL [%s]: (%v)\n", url, err)
+		core.Infof("Parse Feed URL [%s] Error: (%v)\n", url, err)
 		ch <- nil
 	}
 }
@@ -63,13 +64,16 @@ func (e env) fetchUrls(urls []string) []*gofeed.Feed {
 // }
 
 func (e env) getAuthor(feed *gofeed.Feed) string {
-	if feed.Author != nil {
-		return feed.Author.Name
+	// if feed.Author != nil {
+	// 	return feed.Author.Name
+	// }
+	// if feed.Items[0].Author != nil {
+	// 	return feed.Items[0].Author.Name
+	// }
+	if feed.Title != "" {
+		return feed.Title
 	}
-	if feed.Items[0].Author != nil {
-		return feed.Items[0].Author.Name
-	}
-	fmt.Printf("Using Default Author for [%s]", feed.Link)
+	core.Infof("Using Default Author for [%s]", feed.Link)
 	return e.author
 }
 

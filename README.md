@@ -14,10 +14,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: 91go/feeds-merge@v1
         with:
-          FEEDS_PATH: .github/feeds.yml
-          CLIENT_TIMEOUT: 50
-          AUTHOR_NAME: xxx
-          FEED_LIMIT: 300
+          feeds_path: src/data/feeds.yml
+          client_timeout: 50
+          author_name: <username>
+          feed_limit: 300
       - uses: shallwefootball/s3-upload-action@master
         with:
           aws_key_id: ${{ secrets.AWS_KEY_ID }}
@@ -33,7 +33,13 @@ jobs:
   upload:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: 91go/feeds-merge@v1
+        with:
+          feeds_path: src/data/feeds.yml
+          client_timeout: 50
+          author_name: <username>
+          feed_limit: 300
       - name: Commit files
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
