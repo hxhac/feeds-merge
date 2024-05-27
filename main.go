@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/samber/lo"
+
 	"github.com/actions-go/toolkit/core"
 
 	"gopkg.in/yaml.v3"
@@ -20,8 +22,14 @@ type env struct {
 }
 
 type Categories struct {
-	Name  string   `yaml:"name"`
-	Feeds []string `yaml:"feeds"`
+	Type  string `yaml:"type"`
+	Feeds []Feed
+}
+
+type Feed struct {
+	Feed string `yaml:"feed"`
+	Des  string `yaml:"des"`
+	URL  string `yaml:"url"`
 }
 
 var (
@@ -65,10 +73,14 @@ func main() {
 		wg.Add(1)
 		go func(cate Categories) {
 			defer wg.Done()
-			feedsTitle := cate.Name
-			urls := cate.Feeds
+			feedsTitle := cate.Type
+			feeds := cate.Feeds
 
 			// check feed is valid
+
+			urls := lo.Map(feeds, func(item Feed, index int) string {
+				return item.Feed
+			})
 
 			allFeeds := e.fetchUrls(urls)
 			combinedFeed := e.mergeAllFeeds(feedsTitle, allFeeds)
